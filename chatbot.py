@@ -29,4 +29,3 @@ graph.add_edge('chatbot', END)
 chatbot= graph.compile();
 
 initial_message={"messages": [HumanMessage(content="What is the capital of india?")]}
-print(chatbot.invoke(initial_message)['messages'][-1].content)
