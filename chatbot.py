@@ -44,4 +44,3 @@ while True:
     response = chatbot.invoke(
         {"messages": [HumanMessage(content=user_input)]}, config=config
     )
-    print("Chatbot:", response["messages"][-1].content)
