@@ -16,7 +16,6 @@ class ChatbotState(TypedDict):
 
 llm = ChatOpenAI()
 
-
 def run_chatbot(state: ChatbotState) -> str:
     messages = state["messages"]
     response = llm.invoke(messages)
