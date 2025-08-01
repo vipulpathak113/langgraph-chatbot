@@ -9,7 +9,6 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-
 class ChatbotState(TypedDict):
     messages: Annotated[list[BaseMessage], add_messages]
 
