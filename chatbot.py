@@ -12,7 +12,6 @@ load_dotenv()
 class ChatbotState(TypedDict):
     messages: Annotated[list[BaseMessage], add_messages]
 
-
 llm = ChatOpenAI()
 
 def run_chatbot(state: ChatbotState) -> str:
