@@ -22,22 +22,9 @@ def run_chatbot(state: ChatbotState) -> str:
 
 checkpointer = MemorySaver()
 graph = StateGraph(ChatbotState)
-graph.add_node("chatbot", run_chatbot)
 
+graph.add_node("chatbot", run_chatbot)
 graph.add_edge(START, "chatbot")
 graph.add_edge("chatbot", END)
 
 chatbot = graph.compile(checkpointer=checkpointer)
-
-
-# adding conversation to chatbot
-
-thread_id = "1"
-while True:
-    user_input = input("You: ")
-    if user_input.lower() in ["exit", "quit"]:
-        break
-    config = {"configurable": {"thread_id": thread_id}}
-    response = chatbot.invoke(
-        {"messages": [HumanMessage(content=user_input)]}, config=config
-    )
