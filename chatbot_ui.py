@@ -16,7 +16,7 @@ for message in st.session_state['messages']:
     with st.chat_message(message['role']):
         st.text(message['content'])    
 
-user_input= st.chat_input("Type your message here...")
+user_input= st.chat_input("Type your message here....")
 
 if user_input:
     with st.chat_message("user"):
