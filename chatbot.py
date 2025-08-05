@@ -19,7 +19,6 @@ def run_chatbot(state: ChatbotState) -> str:
     response = llm.invoke(messages)
     return {"messages": messages + [response]}
 
-
 checkpointer = MemorySaver()
 graph = StateGraph(ChatbotState)
 
