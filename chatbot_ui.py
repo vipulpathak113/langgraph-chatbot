@@ -23,11 +23,7 @@ if user_input:
         st.session_state.messages.append({"role": "user", "content": user_input})
         st.text(user_input)
 
-    response = chatbot.invoke(
-        {"messages": HumanMessage(content=user_input)}, config=config
-    )
-    ai_response = response["messages"][-1].content
-
     with st.chat_message("assistant"):
+        generator_reponse= chatbot.stream({"messages":HumanMessage(content=user_input)}, config=config, stream_mode="messages");
+        ai_response= st.write_stream(message_chunk.content for message_chunk,metadata in generator_reponse)
         st.session_state.messages.append({"role": "assistant", "content": ai_response})
-        st.text(ai_response)
