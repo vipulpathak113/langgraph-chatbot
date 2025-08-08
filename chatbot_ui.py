@@ -1,16 +1,67 @@
 import streamlit as st
 from chatbot import chatbot
 from langchain_core.messages import HumanMessage
+import uuid
 
 # Streamlit Chatbot UI Component
 # This component allows users to interact with a chatbot in a chat-like interface.
 st.title("Chatbot Using LangGraph Workflow")
 
-config = {"configurable": {"thread_id": "thread-1"}}
+def generateThreadId():
+    """Generates a unique thread ID for the chat session."""
+    return str(uuid.uuid4()) 
+
+def add_thread_id(thread_id):
+    if thread_id not in st.session_state.chat_threads:
+        st.session_state.chat_threads.append(thread_id)
+
+def create_new_chat():
+    """Creates a new chat session by resetting the messages."""
+    thread_id= generateThreadId()
+    st.session_state.thread_id = thread_id
+    add_thread_id(thread_id)
+    st.session_state.messages = []
+    
+def load_chat_history(thread_id):
+    return chatbot.get_state(config={"configurable": {"thread_id": thread_id}}).values.get("messages", [])  
+
+
 # Initialize session state for messages if not already present
 # Storing in session state as streamlit reset the state on every run
 if "messages" not in st.session_state:
     st.session_state.messages = []
+    
+if "thread_id" not in st.session_state:
+    st.session_state.thread_id = generateThreadId()    
+    
+if "chat_threads" not in st.session_state:
+    st.session_state.chat_threads = []     
+    
+add_thread_id(st.session_state.thread_id)    
+
+ 
+config = {"configurable": {"thread_id": st.session_state.thread_id}}
+
+if st.sidebar.button("New Chat"):
+    create_new_chat()
+
+st.sidebar.header("Chats")
+
+if st.session_state['chat_threads'][::-1]:
+    for thread_id in st.session_state['chat_threads']:
+        if st.sidebar.button(thread_id):
+            st.session_state.thread_id = thread_id
+            messages = load_chat_history(thread_id)
+            
+            temp_messages= [];
+            for msg in messages:
+                if isinstance(msg, HumanMessage):
+                    temp_messages.append({"role": "user", "content": msg.content})
+                else:
+                    temp_messages.append({"role": "assistant", "content": msg.content})
+            st.session_state.messages = temp_messages
+                
+            
 
 for message in st.session_state["messages"]:
     with st.chat_message(message["role"]):
