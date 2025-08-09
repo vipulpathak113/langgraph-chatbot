@@ -5,3 +5,4 @@ langchain-core
 langchain-openai
 load_dotenv
 streamlit
+langgraph-checkpoint-sqlite

@@ -1,7 +1,8 @@
 import streamlit as st
-from chatbot import chatbot
+from chatbot import chatbot,getThreadIds
 from langchain_core.messages import HumanMessage
 import uuid
+
 
 # Streamlit Chatbot UI Component
 # This component allows users to interact with a chatbot in a chat-like interface.
@@ -35,7 +36,7 @@ if "thread_id" not in st.session_state:
     st.session_state.thread_id = generateThreadId()    
     
 if "chat_threads" not in st.session_state:
-    st.session_state.chat_threads = []     
+    st.session_state.chat_threads = getThreadIds()    
     
 add_thread_id(st.session_state.thread_id)    
 
@@ -47,8 +48,8 @@ if st.sidebar.button("New Chat"):
 
 st.sidebar.header("Chats")
 
-if st.session_state['chat_threads'][::-1]:
-    for thread_id in st.session_state['chat_threads']:
+if st.session_state['chat_threads']:
+    for thread_id in st.session_state['chat_threads'][::-1]:
         if st.sidebar.button(thread_id):
             st.session_state.thread_id = thread_id
             messages = load_chat_history(thread_id)
