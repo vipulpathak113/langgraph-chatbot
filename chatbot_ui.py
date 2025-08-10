@@ -1,5 +1,5 @@
 import streamlit as st
-from chatbot import chatbot,getThreadIds
+from chatbot import chatbot,getThreadIds,deleteThread
 from langchain_core.messages import HumanMessage
 import uuid
 
@@ -43,26 +43,49 @@ add_thread_id(st.session_state.thread_id)
  
 config = {"configurable": {"thread_id": st.session_state.thread_id}}
 
+
 if st.sidebar.button("New Chat"):
     create_new_chat()
 
 st.sidebar.header("Chats")
 
+# Update the thread listing section
 if st.session_state['chat_threads']:
     for thread_id in st.session_state['chat_threads'][::-1]:
-        if st.sidebar.button(thread_id):
-            st.session_state.thread_id = thread_id
-            messages = load_chat_history(thread_id)
+        col1, col2 = st.sidebar.columns(2)  # Adjusted ratio
+        
+        # Thread button
+        with col1:
+            if st.button(thread_id, key=f"thread_{thread_id}", use_container_width=True):
+                st.session_state.thread_id = thread_id
+                messages = load_chat_history(thread_id)
+                temp_messages = []
+                for msg in messages:
+                    if isinstance(msg, HumanMessage):
+                        temp_messages.append({"role": "user", "content": msg.content})
+                    else:
+                        temp_messages.append({"role": "assistant", "content": msg.content})
+                st.session_state.messages = temp_messages
+        
+        # Menu using selectbox
+        with col2:
+            option = st.selectbox(
+                "",
+                ["Select","Delete"],
+                key=f"menu_{thread_id}",
+                width=800,
+            )
             
-            temp_messages= [];
-            for msg in messages:
-                if isinstance(msg, HumanMessage):
-                    temp_messages.append({"role": "user", "content": msg.content})
-                else:
-                    temp_messages.append({"role": "assistant", "content": msg.content})
-            st.session_state.messages = temp_messages
+            if option == "Delete":
+                confirm = st.button("Confirm Delete?", key=f"confirm_{thread_id}")
+                if confirm:
+                    if deleteThread(thread_id):
+                        st.session_state.chat_threads.remove(thread_id)
+                        if thread_id == st.session_state.thread_id:
+                            create_new_chat()
+                        st.session_state.chat_threads = getThreadIds()
+                        st.rerun()
                 
-            
 
 for message in st.session_state["messages"]:
     with st.chat_message(message["role"]):

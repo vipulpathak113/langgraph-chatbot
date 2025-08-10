@@ -38,3 +38,12 @@ def getThreadIds():
     return list(all_threads)
     
     
+def deleteThread(thread_id):
+    try:
+        print(f"Attempting to delete thread: {thread_id}")  # Debug log
+        success = checkpointer.delete_thread(thread_id)
+        print(f"Delete success: {success}")  # Debug log
+        return True
+    except Exception as e:
+        print(f"Error deleting thread: {e}")
+        return False
