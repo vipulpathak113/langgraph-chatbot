@@ -42,7 +42,6 @@ add_thread_id(st.session_state.thread_id)
 
 config = {"configurable": {"thread_id": st.session_state.thread_id}}
 
-
 if st.sidebar.button("New Chat"):
     create_new_chat()
 
