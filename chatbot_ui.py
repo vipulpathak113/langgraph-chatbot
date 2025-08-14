@@ -84,7 +84,6 @@ if st.session_state['chat_threads']:
                         st.session_state.chat_threads = getThreadIds()
                         st.rerun()
                 
-
 for message in st.session_state["messages"]:
     with st.chat_message(message["role"]):
         st.text(message["content"])
