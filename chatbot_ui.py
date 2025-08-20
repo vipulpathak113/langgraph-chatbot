@@ -5,7 +5,6 @@ import uuid
 # Streamlit Chatbot UI Component
 # This component allows users to interact with a chatbot in a chat-like interface.
 st.title("Chatbot Using LangGraph Workflows")
-
 def generateThreadId():
     """Generates a unique thread ID for the chat session."""
     return str(uuid.uuid4()) 
