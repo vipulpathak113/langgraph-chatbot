@@ -11,7 +11,7 @@
 - [Resources & Links](#resources--links)
 
 ## What is LangGraph? 
-LangGraph is like a smart conductor orchestrating different parts of an AI system. Imagine you're building a puzzle - each piece needs to fit perfectly with others and work together smoothly. That's what LangGraph does for AI applications! 
+LangGraph is like a smart conductor orchestrating different parts of an AI system. Imagine you're building a puzzle - each piece needs to fit perfectly with others and work together smoothly. That's what LangGraph does for AI applications
 
 It helps create intelligent workflows by:
 - Managing how different parts of the system talk to each other
