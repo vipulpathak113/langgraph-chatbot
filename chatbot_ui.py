@@ -37,7 +37,7 @@ if "chat_threads" not in st.session_state:
     
 add_thread_id(st.session_state.thread_id)    
 
-config = {"configurable": {"thread_id": st.session_state.thread_id}}
+config = {"configurable": {"thread_id": st.session_state.thread_id},"metadata": {"thread_id": st.session_state.thread_id},"run_name":"chatbot_run"}
 
 if st.sidebar.button("New Chat"):
     create_new_chat()
