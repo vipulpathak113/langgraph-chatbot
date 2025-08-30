@@ -1,6 +1,6 @@
 import streamlit as st
 from chatbot import chatbot,getThreadIds,deleteThread
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage,AIMessage,ToolMessage
 import uuid
 # Streamlit Chatbot UI Component
 # This component allows users to interact with a chatbot in a chat-like interface.
@@ -21,7 +21,28 @@ def create_new_chat():
     st.session_state.messages = []
     
 def load_chat_history(thread_id):
-    return chatbot.get_state(config={"configurable": {"thread_id": thread_id}}).values.get("messages", [])  
+    """Loads chat history and restores any saved tool status"""
+    messages = chatbot.get_state(config={"configurable": {"thread_id": thread_id}}).values.get("messages", [])
+    temp_messages = []
+    
+    for msg in messages:
+        if isinstance(msg, HumanMessage):
+            temp_messages.append({"role": "user", "content": msg.content})
+        elif isinstance(msg, AIMessage):
+            temp_messages.append({"role": "assistant", "content": msg.content})
+            # Check if there was a tool status saved for this message
+            tool_status_key = f"tool_status_{thread_id}_{len(temp_messages)}"
+            if tool_status_key in st.session_state:
+                status_info = st.session_state[tool_status_key]
+                # Create status box with saved state
+                st.status(
+                    label=status_info["label"],
+                    state=status_info["state"],
+                    expanded=status_info["expanded"]
+                )
+    
+    st.session_state.messages = temp_messages
+    return messages
 
 
 # Initialize session state for messages if not already present
@@ -92,7 +113,51 @@ if user_input:
         st.session_state.messages.append({"role": "user", "content": user_input})
         st.text(user_input)
 
+    # Assistant streaming block
     with st.chat_message("assistant"):
-        generator_reponse= chatbot.stream({"messages":HumanMessage(content=user_input)}, config=config, stream_mode="messages");
-        ai_response= st.write_stream(message_chunk.content for message_chunk,metadata in generator_reponse)
-        st.session_state.messages.append({"role": "assistant", "content": ai_response})
+        message_index = len(st.session_state.messages)
+        tool_status_key = f"tool_status_{st.session_state.thread_id}_{message_index}"
+        status_holder = {"box": None}
+
+        def ai_only_stream():
+            for message_chunk, metadata in chatbot.stream(
+                {"messages": [HumanMessage(content=user_input)]},
+                config=config,
+                stream_mode="messages",
+            ):
+                # Lazily create & update the SAME status container when any tool runs
+                if isinstance(message_chunk, ToolMessage):
+                    tool_name = getattr(message_chunk, "name", "tool")
+                    if status_holder["box"] is None:
+                        status_holder["box"] = st.status(
+                            f"🔧 Using `{tool_name}` …", expanded=True
+                        )
+                    else:
+                        status_holder["box"].update(
+                            label=f"🔧 Using `{tool_name}` …",
+                            state="running",
+                            expanded=True,
+                        )
+
+                # Stream ONLY assistant tokens
+                if isinstance(message_chunk, AIMessage):
+                    yield message_chunk.content
+
+        ai_message = st.write_stream(ai_only_stream())
+
+        # Store the tool status in session state with unique key per message
+        if status_holder["box"] is not None:
+            st.session_state[tool_status_key] = {
+                "label": "✅ Tool finished",
+                "state": "complete",
+                "expanded": False
+            }
+            status_holder["box"].update(
+                label="✅ Tool finished",
+                state="complete",
+                expanded=False
+            )
+
+    st.session_state["messages"].append(
+        {"role": "assistant", "content": ai_message}
+    )

@@ -4,6 +4,9 @@ from langchain_core.messages import BaseMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.prebuilt import ToolNode, tools_condition
+from langchain_community.tools import DuckDuckGoSearchRun
+from langchain_core.tools import tool
 from dotenv import load_dotenv
 import sqlite3
 
@@ -15,18 +18,29 @@ class ChatbotState(TypedDict):
 
 llm = ChatOpenAI()
 
+# Tools
+search_tool = DuckDuckGoSearchRun(region="us-en")
+
+tools = [search_tool]
+llm_with_tools = llm.bind_tools(tools)
+
 def run_chatbot(state: ChatbotState) -> str:
     messages = state["messages"]
-    response = llm.invoke(messages)
+    response = llm_with_tools.invoke(messages)
     return {"messages": messages + [response]}
+
+tool_node = ToolNode(tools)
 
 connection = sqlite3.connect(database="chatbot_state.db", check_same_thread=False)
 checkpointer = SqliteSaver(connection)
 graph = StateGraph(ChatbotState)
 
-graph.add_node("chatbot", run_chatbot)
-graph.add_edge(START, "chatbot")
-graph.add_edge("chatbot", END)
+graph.add_node("chatbot_node", run_chatbot)
+graph.add_node("tools", tool_node)
+
+graph.add_edge(START, "chatbot_node")
+graph.add_conditional_edges("chatbot_node",tools_condition)
+graph.add_edge('tools', 'chatbot_node')
 
 chatbot = graph.compile(checkpointer=checkpointer)
 
