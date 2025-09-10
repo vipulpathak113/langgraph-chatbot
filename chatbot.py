@@ -1,6 +1,6 @@
 from langgraph.graph import START, END, StateGraph
 from typing import Annotated, TypedDict
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import BaseMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.sqlite import SqliteSaver
@@ -18,12 +18,29 @@ class ChatbotState(TypedDict):
 llm = ChatOpenAI()
 
 # Tools
-search_tool = DuckDuckGoSearchRun(region="us-en")
+search_tool = DuckDuckGoSearchRun(
+    region="us-en",
+    max_results=5,  # Increase number of results
+    kwargs={
+        "time": "m",  # Get recent results from last month
+    }
+)
 tools = [search_tool]
 llm_with_tools = llm.bind_tools(tools)
 
 def run_chatbot(state: ChatbotState) -> str:
     messages = state["messages"]
+    # Add system message to encourage tool usage
+    system_message = {
+        "role": "system",
+        "content": """When you're not completely sure about information or need real-time data, 
+        use the search tool. For AI-related queries, always verify information through search first.
+        Available tools: DuckDuckGoSearch - Use this to search for current information."""
+    }
+    
+    if not any(msg.type == "system" for msg in messages):
+        messages = [SystemMessage(content=system_message["content"])] + messages
+        
     response = llm_with_tools.invoke(messages)
     return {"messages": messages + [response]}
 
@@ -118,5 +135,5 @@ def append_message_to_thread(thread_id: str, message):
     messages = state.values.get("messages", [])
     messages.append(message)
     chatbot.save_state({"messages": messages}, config={"configurable": {"thread_id": thread_id}})
-    
+
 
