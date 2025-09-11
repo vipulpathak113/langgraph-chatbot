@@ -57,7 +57,7 @@ def load_chat_history(thread_id: str):
                 )
     st.session_state.messages = temp_messages
 
-# ----------------- Streamlit Page -----------------
+# ----------------- Streamlit Page --------------------
 st.set_page_config(page_title="LangGraph Chatbot", page_icon="🤖", layout="wide")
 st.title("🤖 Chatbot Using LangGraph Workflows")
 
