@@ -2,6 +2,7 @@ import streamlit as st
 from chatbot import chatbot, getThreadIds, deleteThread
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 import uuid
+
 # ----------------- Utilities -----------------
 def generate_thread_id():
     """Generates a unique thread ID for the chat session."""
