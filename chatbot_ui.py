@@ -1,5 +1,5 @@
 import streamlit as st
-from chatbot import chatbot, getThreadIds, deleteThread
+from chatbot import chatbot, getThreadIds, deleteThread,saveThreadTitle
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 import uuid
 
@@ -231,6 +231,9 @@ if user_input:
     if not active_chat:
         st.session_state.chat_threads.insert(
             0, {"id": str(st.session_state.thread_id), "title": generate_chat_title(user_input)}
+        )
+        saveThreadTitle(
+            str(st.session_state.thread_id), generate_chat_title(user_input)
         )
     elif active_chat["title"] == "New Chat":
         active_chat["title"] = generate_chat_title(user_input)
